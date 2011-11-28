@@ -33,6 +33,9 @@ def InitPreferences():
 			"auto": _("Automatically send all")}, 
 			default = "ask")
 	
+	# @@azbox start
+	config.sifteam.fanenabled = ConfigYesNo(True)
+	# @@azbox end
 	
 	config.sifteam.switch_4_3_letterbox = ConfigYesNo(True)
 	config.sifteam.switch_4_3_panscan = ConfigYesNo(True)

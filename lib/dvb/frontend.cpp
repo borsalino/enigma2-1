@@ -504,6 +504,23 @@ int eDVBFrontend::openFrontend()
 #else
 	dvb_frontend_info fe_info;
 #endif
+#ifdef AZBOX
+	int fd = open("/proc/stb/info/model", O_RDONLY);
+	char tmp[255];
+	int rd = fd >= 0 ? read(fd, tmp, 255) : 0;
+	if (fd >= 0)
+		close(fd);
+	if (!strncmp(tmp, "elite\n", rd) || !strncmp(tmp, "premium\n", rd))
+	{	//dirty fix for Azbox(elite/premium) HW bug regarding tuner(s), if second tuner want to be used, set it active and deactivate first tuner !
+		fd = open("/proc/tunerselect", O_WRONLY);
+		if(fd > 0)
+		{
+			tmp[0] = m_dvbid == 1 ? '1' : '0';
+			write(fd,tmp,1);
+			close(fd);
+		}
+	}
+#endif
 	if (!m_simulate)
 	{
 		eDebug("opening frontend %d", m_dvbid);
@@ -1485,6 +1502,7 @@ int eDVBFrontend::readInputpower()
 	int power=m_slotid;  // this is needed for read inputpower from the correct tuner !
 	char proc_name[64];
 	char proc_name2[64];
+#ifndef AZBOX
 	sprintf(proc_name, "/proc/stb/frontend/%d/lnb_sense", m_slotid);
 	sprintf(proc_name2, "/proc/stb/fp/lnb_sense%d", m_slotid);
 	FILE *f;
@@ -1513,6 +1531,7 @@ int eDVBFrontend::readInputpower()
 		}
 		::close(fp);
 	}
+#endif
 
 	return power;
 }

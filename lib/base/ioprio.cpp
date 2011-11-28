@@ -12,6 +12,11 @@
 extern "C" int sys_ioprio_set(int, int, int);
 extern "C" int sys_ioprio_get(int, int);
 
+#ifdef AZBOX
+#define __NR_ioprio_set		4314
+#define __NR_ioprio_get		4315
+#endif
+
 #ifndef __NR_ioprio_set
 #if defined(__i386__)
 #define __NR_ioprio_set		289

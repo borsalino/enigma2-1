@@ -72,6 +72,9 @@ eDBoxLCD::eDBoxLCD()
 	int xres=132, yres=64, bpp=8;
 	is_oled = 0;
 #ifndef NO_LCD
+#ifdef AZBOX
+	lcdfd = open("/proc/vfd", O_RDWR);
+#else
 	lcdfd = open("/dev/dbox/oled0", O_RDWR);
 	if (lcdfd < 0)
 	{
@@ -117,6 +120,7 @@ eDBoxLCD::eDBoxLCD()
 		}
 	}
 #endif
+#endif
 	instance=this;
 
 	setSize(xres, yres, bpp);
@@ -131,6 +135,7 @@ void eDBoxLCD::setInverted(unsigned char inv)
 int eDBoxLCD::setLCDContrast(int contrast)
 {
 #ifndef NO_LCD
+#ifndef AZBOX
 	int fp;
 	if((fp=open("/dev/dbox/fp0", O_RDWR))<0)
 	{
@@ -144,12 +149,14 @@ int eDBoxLCD::setLCDContrast(int contrast)
 	}
 	close(fp);
 #endif
+#endif
 	return(0);
 }
 
 int eDBoxLCD::setLCDBrightness(int brightness)
 {
 #ifndef NO_LCD
+#ifndef AZBOX
 	eDebug("setLCDBrightness %d", brightness);
 	FILE *f=fopen("/proc/stb/lcd/oled_brightness", "w");
 	if (!f)
@@ -173,6 +180,7 @@ int eDBoxLCD::setLCDBrightness(int brightness)
 			eDebug("[LCD] can't set lcd brightness (%m)");
 		close(fp);
 	}
+#endif
 #endif
 	return(0);
 }

@@ -11,6 +11,25 @@ inStandby = None
 class Standby(Screen):
 	def Power(self):
 		print "leave standby"
+		
+		# @@azbox start
+		try:
+			open("/proc/sleep", "w").write("1")
+		except IOError:
+			pass
+			
+		try:
+			open("/proc/tangoxfreq/profile", "w").write("0")
+		except IOError:
+			pass
+			
+		try:
+			if config.sifteam.fanenabled.value:
+				open("/proc/fan", "w").write("1")
+			except IOError:
+				pass
+		# @@azbox end
+		
 		#set input to encoder
 		self.avswitch.setInput("ENCODER")
 		#restart last played service
@@ -45,6 +64,23 @@ class Standby(Screen):
 
 		globalActionMap.setEnabled(False)
 
+		# @@azbox start
+		try:
+			open("/proc/sleep", "w").write("0")
+		except IOError:
+			pass
+			
+		try:
+			open("/proc/tangoxfreq/profile", "w").write("2")
+		except IOError:
+			pass
+			
+		try:
+			open("/proc/fan", "w").write("0")
+		except IOError:
+			pass
+		# @@azbox end
+		
 		#mute adc
 		self.setMute()
 
@@ -162,6 +198,24 @@ class TryQuitMainloop(MessageBox):
 			self.session.nav.record_event.remove(self.getRecordEvent)
 		if value:
 			if self.retval == 1:
+				
+				# @@azbox start
+				try:
+					open("/proc/sleep", "w").write("0")
+				except IOError:
+					pass
+					
+				try:
+					open("/proc/vfdclock", "w").write("1")
+				except IOError:
+					pass
+					
+				try:
+					open("/proc/vfdclock", "w").write(time.strftime("%Y%m%d%H%M"))
+				except IOError:
+					pass
+				# @@azbox end
+				
 				config.misc.DeepStandby.value = True
 			quitMainloop(self.retval)
 		else:

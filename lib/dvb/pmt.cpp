@@ -480,6 +480,11 @@ int eDVBServicePMTHandler::getProgramInfo(program &program)
 							audio.type = audioStream::atLPCM;
 						}
 					case 0x81: // user private ... but bluray AC3
+#ifdef AZBOX
+					case 0x83: // 0x83 = dolby lossless - to check ?? OK ?
+					case 0x84: // 0x84 = dolby digital plus - to check ?? OK ?
+					case 0x6A: // AC3 descriptor too ??
+#endif
 					case 0xA1: // bluray secondary AC3
 						if (!isvideo && !isaudio)
 						{
@@ -636,7 +641,11 @@ int eDVBServicePMTHandler::getProgramInfo(program &program)
 									break;
 								case ENHANCED_AC3_DESCRIPTOR:
 									isaudio = 1;
+#ifdef AZBOX
+									audio.type = audioStream::atAC3;
+#else
 									audio.type = audioStream::atDDP;
+#endif
 									break;
 								case REGISTRATION_DESCRIPTOR: /* some services don't have a separate AC3 descriptor */
 								{

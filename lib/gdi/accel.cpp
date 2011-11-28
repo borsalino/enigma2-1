@@ -9,7 +9,11 @@
 #include <lib/gdi/gpixmap.h>
 
 gAccel *gAccel::instance;
+#ifdef AZBOX
+#define SIGMA_ACCEL
+#else
 #define BCM_ACCEL
+#endif
 
 #ifdef ATI_ACCEL
 extern int ati_accel_init(void);
@@ -39,6 +43,20 @@ extern void bcm_accel_fill(
 		unsigned long color);
 extern bool bcm_accel_has_alphablending();
 #endif
+#ifdef SIGMA_ACCEL
+extern int sigma_accel_init(void);
+extern void sigma_accel_close(void);
+extern int sigma_accel_blit(
+		int src_addr, int src_width, int src_height, int src_stride, int src_format,
+		int dst_addr, int dst_width, int dst_height, int dst_stride,
+		int src_x, int src_y, int width, int height,
+		int dst_x, int dst_y, int dwidth, int dheight,
+		int pal_addr, int colornb,int flags);
+extern int sigma_accel_fill(
+		int dst_addr, int dst_width, int dst_height, int dst_stride,
+		int x, int y, int width, int height,
+		unsigned long color);
+#endif
 
 gAccel::gAccel()
 {
@@ -53,6 +71,9 @@ gAccel::gAccel()
 #endif
 #ifdef BCM_ACCEL	
 	m_bcm_accel_state = bcm_accel_init();
+#endif
+#ifdef SIGMA_ACCEL
+	m_sigma_accel_state = sigma_accel_init();
 #endif
 }
 
@@ -137,6 +158,41 @@ int gAccel::blit(gSurface *dst, const gSurface *src, const eRect &p, const eRect
 			area.left(), area.top(), area.width(), area.height(),
 			p.x(), p.y(), p.width(), p.height(),
 			pal_addr, flags);
+		return 0;
+	}
+#endif
+#ifdef SIGMA_ACCEL
+	if (!m_sigma_accel_state)
+	{
+		unsigned long pal_addr = 0;
+		int src_format = 0;
+		if (src->bpp == 32)
+			src_format = 0;
+		else if ((src->bpp == 8) && src->clut.data)
+		{
+			src_format = 1;
+			/* sync pal */
+			int i;
+			pal_addr = src->stride * src->y;
+			unsigned long *pal = (unsigned long*)(((unsigned char*)src->data) + pal_addr);
+
+			pal_addr += src->data_phys;
+
+			for (i = 0; i < src->clut.colors; ++i)
+				*pal++ = src->clut.data[i].argb() ^ 0xFF000000;
+
+		} else
+			return -1; /* unsupported source format */
+
+		if( sigma_accel_blit(
+				src->data_phys, src->x, src->y, src->stride, src_format,
+				dst->data_phys, dst->x, dst->y, dst->stride,
+				area.left(), area.top(), area.width(), area.height(),
+				p.x(), p.y(), p.width(), p.height(),
+				pal_addr, src->clut.colors, flags) < 0 )
+
+			return -1;
+
 		return 0;
 	}
 #endif

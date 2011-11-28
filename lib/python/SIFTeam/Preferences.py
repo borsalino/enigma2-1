@@ -26,7 +26,10 @@ class Preferences(Screen, ConfigListScreen):
 			getConfigListEntry(_("Video green switch enable 16:9 always:"), config.sifteam.switch_16_9_always),
 			getConfigListEntry(_("Video green switch enable 16:9 letterbox:"), config.sifteam.switch_16_9_letterbox),
 			getConfigListEntry(_("Video green switch enable 16:10 letterbox:"), config.sifteam.switch_16_10_letterbox),
-			getConfigListEntry(_("Video green switch enable 16:10 panscan:"), config.sifteam.switch_16_10_panscan)
+			getConfigListEntry(_("Video green switch enable 16:10 panscan:"), config.sifteam.switch_16_10_panscan),
+			# @@azbox start
+			getConfigListEntry(_("Fan enabled:"), config.sifteam.fanenabled)
+			# @@azbox end
 		]
 
 		
@@ -49,4 +52,12 @@ class Preferences(Screen, ConfigListScreen):
 		self.keySave()
 		CallPClockCallback()
 		
+		# @@azbox start
+		f = open('/proc/fan', 'w')
+		if config.sifteam.fanenabled.value:
+			f.write("1")
+		else:
+			f.write("0")
+		f.close()
+		# @@azbox end
 

@@ -11,8 +11,15 @@
 #define FP_IOCTL_SET_RTC         0x101
 #define FP_IOCTL_GET_RTC         0x102
 
+#ifdef AZBOX
+#define TIME_UPDATE_INTERVAL (1*30*1000)
+#else
 #define TIME_UPDATE_INTERVAL (30*60*1000)
+#endif
 
+#ifdef AZBOX
+static time_t;
+#else
 static time_t prev_time;
 
 void setRTC(time_t time)
@@ -66,6 +73,7 @@ time_t getRTC()
 	}
 	return rtc_time != prev_time ? rtc_time : 0;
 }
+#endif
 
 time_t parseDVBtime(__u8 t1, __u8 t2, __u8 t3, __u8 t4, __u8 t5, __u16 *hash)
 {
@@ -183,7 +191,11 @@ eDVBLocalTimeHandler::~eDVBLocalTimeHandler()
 	if (ready())
 	{
 		eDebug("set RTC to previous valid time");
+#ifdef AZBOX
+		eDebug("no RTC to set");
+#else
 		setRTC(::time(0));
+#endif
 	}
 }
 
@@ -251,7 +263,11 @@ void eDVBLocalTimeHandler::setUseDVBTime(bool b)
 
 void eDVBLocalTimeHandler::updateNonTuned()
 {
+#ifdef AZBOX
+	updateTime(time(0), 0, 0);
+#else
 	updateTime(-1, 0, 0);
+#endif
 	m_updateNonTunedTimer->start(TIME_UPDATE_INTERVAL, true);
 }
 
@@ -269,8 +285,13 @@ void eDVBLocalTimeHandler::updateTime( time_t tp_time, eDVBChannel *chan, int up
 			&& eSystemInfo::getInstance()->hasStandbyWakeupTimer() ) )     TODO !!!!!!! */
 		{
 			eDebug("[eDVBLocalTimerHandler] no transponder tuned... or no TDT/TOT avail .. try to use RTC :)");
+#ifdef AZBOX
+			time_t rtc_time = time(0); // take linux time
+			if ( rtc_time == -1 ) // RTC Ready?
+#else
 			time_t rtc_time = getRTC();
 			if ( rtc_time ) // RTC Ready?
+#endif
 			{
 				tm now;
 				localtime_r(&rtc_time, &now);
@@ -304,7 +325,11 @@ void eDVBLocalTimeHandler::updateTime( time_t tp_time, eDVBChannel *chan, int up
 				eDebug("[eDVBLocalTimerHandler] shit RTC not ready :(");
 		}
 	}
+#ifdef AZBOX
+	else if (chan != NULL)
+#else
 	else
+#endif
 	{
 		std::map< eDVBChannelID, int >::iterator it( m_timeOffsetMap.find( chan->getChannelID() ) );
 
@@ -331,6 +356,11 @@ void eDVBLocalTimeHandler::updateTime( time_t tp_time, eDVBChannel *chan, int up
 			}
 			else if ( it != m_timeOffsetMap.end() ) // correction saved?
 			{
+#ifdef AZBOX
+				eDebug("nema gdje snimiti korekciju", it->second);
+				m_timeOffsetMap[chan->getChannelID()] = 0;
+				new_diff = enigma_diff;
+#else
 				eDebug("[eDVBLocalTimerHandler] we have correction %d", it->second);
 				time_t CorrectedTpTime = tp_time+it->second;
 				int ddiff = CorrectedTpTime-linuxTime;
@@ -360,11 +390,15 @@ void eDVBLocalTimeHandler::updateTime( time_t tp_time, eDVBChannel *chan, int up
 					eDebug("[eDVBLocalTimerHandler] update stored correction to %d", -enigma_diff);
 					m_timeOffsetMap[chan->getChannelID()] = -enigma_diff;
 				}
+#endif
 			}
 			else
 			{
 				eDebug("[eDVBLocalTimerHandler] no correction found... store calced correction(%d)",-enigma_diff);
 				m_timeOffsetMap[chan->getChannelID()] = -enigma_diff;
+#ifdef AZBOX
+				new_diff = enigma_diff;
+#endif
 			}
 		}
 		else  // no time setted yet
@@ -394,9 +428,14 @@ void eDVBLocalTimeHandler::updateTime( time_t tp_time, eDVBChannel *chan, int up
 		{
 			// set rtc to calced transponder time when the first tdt is received on this
 			// transponder
+#ifdef AZBOX
+			eDebug("no RTC form set");
+#else
 			setRTC(t);
 			eDebug("[eDVBLocalTimerHandler] update RTC");
+#endif
 		}
+#ifndef AZBOX
 		else if (getRTC())
 		{
 			if (abs(getRTC() - t) > 60)
@@ -407,6 +446,7 @@ void eDVBLocalTimeHandler::updateTime( time_t tp_time, eDVBChannel *chan, int up
 			else
 				eDebug("[eDVBLocalTimerHandler] difference between linux time and RTC time is < 60 sec... so the transponder time looks ok");
 		}
+#endif
 		else
 			eDebug("[eDVBLocalTimerHandler] no RTC available :(");
 

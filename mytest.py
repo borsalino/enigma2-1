@@ -193,6 +193,15 @@ class Session:
 		from SIFTeam.Crashlogs import startSendCrashlog
 		startSendCrashlog(self)
 		
+		# @@azbox start
+		from Components.config import config
+		f = open('/proc/fan', 'w')
+		if config.sifteam.fanenabled.value:
+			f.write("1")
+		else:
+			f.write("0")
+		f.close()
+		# @@azbox end
 	def processDelay(self):
 		callback = self.current_dialog.callback
 

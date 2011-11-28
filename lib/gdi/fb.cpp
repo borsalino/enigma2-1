@@ -72,6 +72,12 @@ fbClass::fbClass(const char *fb)
 		goto nolfb;
 	}
 
+#ifdef AZBOX
+#define PAGE_SIZE (4096)
+	if (fix.smem_start & (PAGE_SIZE-1))
+		lfb += (fix.smem_start & (PAGE_SIZE-1));
+#endif
+
 	showConsole(0);
 
 	enableManualBlit();

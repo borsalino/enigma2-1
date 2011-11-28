@@ -142,6 +142,16 @@ if test "$with_po" = "yes"; then
 fi
 AM_CONDITIONAL(UPDATE_PO, test "$with_po" = "yes")
 
+AC_ARG_WITH(azbox,
+	AC_HELP_STRING([--with-azbox], [enable azbox support]),
+	[[withazbox=$withval]],
+	[[withazbox=no]]
+)
+if test x"$withazbox" != xno ; then
+	AC_DEFINE(AZBOX, 1,[Define when compile enigma2 for azbox])
+fi
+AM_CONDITIONAL(AZBOX, test x"$withazbox" != xno)
+
 ENIGMA2_CFLAGS="-fno-rtti -fno-exceptions"
 AC_SUBST(ENIGMA2_CFLAGS)
 

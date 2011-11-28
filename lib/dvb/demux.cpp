@@ -608,6 +608,13 @@ RESULT eDVBTSRecorder::start()
 	
 	::ioctl(m_source_fd, DMX_START);
 	
+#ifdef AZBOX
+	while (i != m_pids.end()) {
+		eDebug("eDVBTSRecorder::start() - calling startPID for PID=0x%04x",i->first);
+		startPID(i->first);
+		++i;
+	}
+#endif
 #endif
 
 	if (!m_target_filename.empty())
@@ -616,10 +623,12 @@ RESULT eDVBTSRecorder::start()
 	m_thread->start(m_source_fd, m_target_fd);
 	m_running = 1;
 
+#ifndef AZBOX
 	while (i != m_pids.end()) {
 		startPID(i->first);
 		++i;
 	}
+#endif
 
 	return 0;
 }
