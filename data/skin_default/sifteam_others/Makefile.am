@@ -22,4 +22,7 @@ dist_install_DATA = \
 	skin_selector.png \
 	folder.png \
 	star.png \
-	star_disabled.png
+	star_disabled.png \
+	top10.png \
+	bookmark.png
+	config.png
