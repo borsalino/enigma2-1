@@ -190,11 +190,14 @@ class Session:
 		from SIFTeam.SoftwareManager.Stack import smstack
 		smstack.setSession(self)
 		
-		from SIFTeam.SoftwareManager.AutoUpdates import startAutomatiUpdates
-		startAutomatiUpdates(self)
+		from SIFTeam.Scheduler import initScheduler
+		initScheduler(self)
 		
-		from SIFTeam.Crashlogs import startSendCrashlog
-		startSendCrashlog(self)
+		#from SIFTeam.SoftwareManager.AutoUpdates import startAutomatiUpdates
+		#startAutomatiUpdates(self)
+		
+		#from SIFTeam.Crashlogs import startSendCrashlog
+		#startSendCrashlog(self)
 		
 		# @@azbox start
 		from Components.config import config
