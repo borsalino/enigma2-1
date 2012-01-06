@@ -207,7 +207,7 @@ class Session:
 		else:
 			f.write("0")
 		f.close()
-		# @@azbox end
+		# @@azbox end
 	def processDelay(self):
 		callback = self.current_dialog.callback
 
