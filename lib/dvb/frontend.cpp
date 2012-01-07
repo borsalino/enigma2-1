@@ -504,7 +504,6 @@ int eDVBFrontend::openFrontend()
 #else
 	dvb_frontend_info fe_info;
 #endif
-#ifdef AZBOX
 	int fd = open("/proc/stb/info/model", O_RDONLY);
 	char tmp[255];
 	int rd = fd >= 0 ? read(fd, tmp, 255) : 0;
@@ -520,7 +519,6 @@ int eDVBFrontend::openFrontend()
 			close(fd);
 		}
 	}
-#endif
 	if (!m_simulate)
 	{
 		eDebug("opening frontend %d", m_dvbid);
@@ -1502,36 +1500,6 @@ int eDVBFrontend::readInputpower()
 	int power=m_slotid;  // this is needed for read inputpower from the correct tuner !
 	char proc_name[64];
 	char proc_name2[64];
-#ifndef AZBOX
-	sprintf(proc_name, "/proc/stb/frontend/%d/lnb_sense", m_slotid);
-	sprintf(proc_name2, "/proc/stb/fp/lnb_sense%d", m_slotid);
-	FILE *f;
-	if ((f=fopen(proc_name, "r")) || (f=fopen(proc_name2, "r")))
-	{
-		if (fscanf(f, "%d", &power) != 1)
-			eDebug("read %s failed!! (%m)", proc_name);
-		else
-			eDebug("%s is %d\n", proc_name, power);
-		fclose(f);
-	}
-	else
-	{
-		// open front prozessor
-		int fp=::open("/dev/dbox/fp0", O_RDWR);
-		if (fp < 0)
-		{
-			eDebug("couldn't open fp");
-			return -1;
-		}
-		static bool old_fp = (::ioctl(fp, FP_IOCTL_GET_ID) < 0);
-		if ( ioctl( fp, old_fp ? 9 : 0x100, &power ) < 0 )
-		{
-			eDebug("FP_IOCTL_GET_LNB_CURRENT failed (%m)");
-			return -1;
-		}
-		::close(fp);
-	}
-#endif
 
 	return power;
 }

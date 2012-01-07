@@ -9,11 +9,7 @@
 #include <lib/gdi/gpixmap.h>
 
 gAccel *gAccel::instance;
-#ifdef AZBOX
 #define SIGMA_ACCEL
-#else
-#define BCM_ACCEL
-#endif
 
 #ifdef ATI_ACCEL
 extern int ati_accel_init(void);

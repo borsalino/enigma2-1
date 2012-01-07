@@ -264,26 +264,6 @@ eApplication *getApplication()
 
 void quitMainloop(int exitCode)
 {
-#ifndef AZBOX
-	FILE *f = fopen("/proc/stb/fp/was_timer_wakeup", "w");
-	if (f)
-	{
-		fprintf(f, "%d", 0);
-		fclose(f);
-	}
-	else
-	{
-		int fd = open("/dev/dbox/fp0", O_WRONLY);
-		if (fd >= 0)
-		{
-			if (ioctl(fd, 10 /*FP_CLEAR_WAKEUP_TIMER*/) < 0)
-				eDebug("FP_CLEAR_WAKEUP_TIMER failed (%m)");
-			close(fd);
-		}
-		else
-			eDebug("open /dev/dbox/fp0 for wakeup timer clear failed!(%m)");
-	}
-#endif
 	exit_code = exitCode;
 	eApp->quit(0);
 }

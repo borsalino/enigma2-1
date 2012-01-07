@@ -72,54 +72,7 @@ eDBoxLCD::eDBoxLCD()
 	int xres=132, yres=64, bpp=8;
 	is_oled = 0;
 #ifndef NO_LCD
-#ifdef AZBOX
 	lcdfd = open("/proc/vfd", O_RDWR);
-#else
-	lcdfd = open("/dev/dbox/oled0", O_RDWR);
-	if (lcdfd < 0)
-	{
-		if (!access("/proc/stb/lcd/oled_brightness", W_OK) ||
-		    !access("/proc/stb/fp/oled_brightness", W_OK) )
-			is_oled = 2;
-		lcdfd = open("/dev/dbox/lcd0", O_RDWR);
-	} else
-	{
-		eDebug("found OLED display!");
-		is_oled = 1;
-	}
-
-	if (lcdfd < 0)
-		eDebug("couldn't open LCD - load lcd.ko!");
-	else
-	{
-		int i=LCD_MODE_BIN;
-		ioctl(lcdfd, LCD_IOCTL_ASC_MODE, &i);
-		inverted=0;
-		FILE *f = fopen("/proc/stb/lcd/xres", "r");
-		if (f)
-		{
-			int tmp;
-			if (fscanf(f, "%x", &tmp) == 1)
-				xres = tmp;
-			fclose(f);
-			f = fopen("/proc/stb/lcd/yres", "r");
-			if (f)
-			{
-				if (fscanf(f, "%x", &tmp) == 1)
-					yres = tmp;
-				fclose(f);
-				f = fopen("/proc/stb/lcd/bpp", "r");
-				if (f)
-				{
-					if (fscanf(f, "%x", &tmp) == 1)
-						bpp = tmp;
-					fclose(f);
-				}
-			}
-			is_oled = 3;
-		}
-	}
-#endif
 #endif
 	instance=this;
 
@@ -134,54 +87,11 @@ void eDBoxLCD::setInverted(unsigned char inv)
 
 int eDBoxLCD::setLCDContrast(int contrast)
 {
-#ifndef NO_LCD
-#ifndef AZBOX
-	int fp;
-	if((fp=open("/dev/dbox/fp0", O_RDWR))<0)
-	{
-		eDebug("[LCD] can't open /dev/dbox/fp0");
-		return(-1);
-	}
-
-	if(ioctl(lcdfd, LCD_IOCTL_SRV, &contrast)<0)
-	{
-		eDebug("[LCD] can't set lcd contrast");
-	}
-	close(fp);
-#endif
-#endif
 	return(0);
 }
 
 int eDBoxLCD::setLCDBrightness(int brightness)
 {
-#ifndef NO_LCD
-#ifndef AZBOX
-	eDebug("setLCDBrightness %d", brightness);
-	FILE *f=fopen("/proc/stb/lcd/oled_brightness", "w");
-	if (!f)
-		f = fopen("/proc/stb/fp/oled_brightness", "w");
-	if (f)
-	{
-		if (fprintf(f, "%d", brightness) == 0)
-			eDebug("write /proc/stb/lcd/oled_brightness failed!! (%m)");
-		fclose(f);
-	}
-	else
-	{
-		int fp;
-		if((fp=open("/dev/dbox/fp0", O_RDWR)) < 0)
-		{
-			eDebug("[LCD] can't open /dev/dbox/fp0");
-			return(-1);
-		}
-
-		if(ioctl(fp, FP_IOCTL_LCD_DIMM, &brightness) < 0)
-			eDebug("[LCD] can't set lcd brightness (%m)");
-		close(fp);
-	}
-#endif
-#endif
 	return(0);
 }
 

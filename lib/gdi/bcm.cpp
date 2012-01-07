@@ -10,7 +10,6 @@
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 
-#ifdef AZBOX
 // Sigma BLIT struct
 typedef struct {
 	unsigned int p[20];
@@ -244,4 +243,3 @@ void bcm_accel_fill(
 
 	exec_list();
 }
-#endif

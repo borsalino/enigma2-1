@@ -55,10 +55,8 @@ eDVBAudio::eDVBAudio(eDVBDemux *demux, int dev)
 	m_fd = ::open(filename, O_RDWR);
 	if (m_fd < 0)
 		eWarning("%s: %m", filename);
-#ifdef AZBOX
 	if (::ioctl(m_fd, AUDIO_SELECT_SOURCE, AUDIO_SOURCE_DEMUX) < 0)
 		eDebug("failed (%m)");
-#endif
 #if HAVE_DVB_API_VERSION < 3
 	sprintf(filename, "/dev/dvb/card%d/demux%d", demux->adapter, demux->demux);
 #else
@@ -976,18 +974,6 @@ int eTSMPEGDecoder::setState()
 		}
 		m_text = 0;
 	}
-#ifndef AZBOX
-	if (m_changed & changePCR)
-	{
-		if ((m_pcrpid >= 0) && (m_pcrpid < 0x1FFF))
-		{
-			m_pcr = new eDVBPCR(m_demux, m_decoder);
-			if (m_pcr->startPid(m_pcrpid))
-				res = -1;
-		}
-		m_changed &= ~changePCR;
-	}
-#endif
 	if (m_changed & changeAudio)
 	{
 		if ((m_apid >= 0) && (m_apid < 0x1FFF) && !noaudio)
@@ -1029,7 +1015,6 @@ int eTSMPEGDecoder::setState()
 
 		m_changed &= ~changeText;
 	}
-#ifdef AZBOX
 	if (m_changed & changePCR)
 	{
 		if ((m_pcrpid >= 0) && (m_pcrpid < 0x1FFF))
@@ -1040,7 +1025,6 @@ int eTSMPEGDecoder::setState()
 		}
 		m_changed &= ~changePCR;
 	}
-#endif
 #endif
 
 	if (changed & (changeState|changeVideo|changeAudio))
@@ -1373,22 +1357,12 @@ RESULT eTSMPEGDecoder::showSinglePic(const char *filename)
 				int streamtype = VIDEO_STREAMTYPE_MPEG2;
 				memset(stuffing, 0, 8192);
 				read(f, iframe, s.st_size);
-#ifdef AZBOX
 				if (ioctl(m_video_clip_fd, VIDEO_SELECT_SOURCE, 2) < 0)
-#else
-				if (ioctl(m_video_clip_fd, VIDEO_SELECT_SOURCE, VIDEO_SOURCE_MEMORY) < 0)
-#endif
 					eDebug("VIDEO_SELECT_SOURCE MEMORY failed (%m)");
 				if (ioctl(m_video_clip_fd, VIDEO_SET_STREAMTYPE, streamtype) < 0)
 					eDebug("VIDEO_SET_STREAMTYPE failed(%m)");
 				if (ioctl(m_video_clip_fd, VIDEO_PLAY) < 0)
 					eDebug("VIDEO_PLAY failed (%m)");
-#ifndef AZBOX
-				if (ioctl(m_video_clip_fd, VIDEO_CONTINUE) < 0)
-					eDebug("video: VIDEO_CONTINUE: %m");
-				if (ioctl(m_video_clip_fd, VIDEO_CLEAR_BUFFER) < 0)
-					eDebug("video: VIDEO_CLEAR_BUFFER: %m");
-#endif
 				while(pos <= (s.st_size-4) && !(seq_end_avail = (!iframe[pos] && !iframe[pos+1] && iframe[pos+2] == 1 && iframe[pos+3] == 0xB7)))
 					++pos;
 				if ((iframe[3] >> 4) != 0xE) // no pes header
@@ -1423,10 +1397,6 @@ void eTSMPEGDecoder::finishShowSinglePic()
 	{
 		if (ioctl(m_video_clip_fd, VIDEO_STOP, 0) < 0)
 			eDebug("VIDEO_STOP failed (%m)");
-#ifndef AZBOX
-		if (ioctl(m_video_clip_fd, VIDEO_SELECT_SOURCE, VIDEO_SOURCE_DEMUX) < 0)
-				eDebug("VIDEO_SELECT_SOURCE DEMUX failed (%m)");
-#endif
 		close(m_video_clip_fd);
 		m_video_clip_fd = -1;
 	}

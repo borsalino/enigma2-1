@@ -88,25 +88,10 @@ eDVBResourceManager::eDVBResourceManager()
 	if (fd >= 0)
 		close(fd);
 
-#ifdef AZBOX
 	if (!strncmp(tmp, "elite\n", rd) || !strncmp(tmp, "premium\n", rd) || !strncmp(tmp, "premium+\n", rd) || !strncmp(tmp, "me\n", rd) || !strncmp(tmp, "minime\n", rd))
 		m_boxtype = AZBOXHD;
 	else if (!strncmp(tmp, "ultra\n", rd))
 		m_boxtype = AZBOXHD_ULTRA;
-#else
-	if (!strncmp(tmp, "dm7025\n", rd))
-		m_boxtype = DM7025;
-	else if (!strncmp(tmp, "dm8000\n", rd))
-		m_boxtype = DM8000;
-	else if (!strncmp(tmp, "dm800\n", rd))
-		m_boxtype = DM800;
-	else if (!strncmp(tmp, "dm500hd\n", rd))
-		m_boxtype = DM500HD;
-	else if (!strncmp(tmp, "dm800se\n", rd))
-		m_boxtype = DM800SE;
-	else if (!strncmp(tmp, "dm7020hd\n", rd))
-		m_boxtype = DM7020HD;
-#endif
 	else {
 		eDebug("boxtype detection via /proc/stb/info not possible... use fallback via demux count!\n");
 		if (m_demux.size() == 3)
@@ -514,14 +499,11 @@ RESULT eDVBResourceManager::allocateDemux(eDVBRegisteredFrontend *fe, ePtr<eDVBA
 			i = m_demux.end();
 			--i;
 		}
-#ifdef AZBOX
 		int n = 0;
-#endif
 		while (i != m_demux.end())
 		{
 			if (i->m_adapter == adapter)
 			{
-#ifdef AZBOX
 				if (!i->m_inuse && n == 0 && source == 0 && m_boxtype != AZBOXHD_ULTRA)  //Sigma use demux0 for tuner (0)
 				{
 					if (!unused) {
@@ -536,13 +518,6 @@ RESULT eDVBResourceManager::allocateDemux(eDVBRegisteredFrontend *fe, ePtr<eDVBA
 						break;
 					}
 				}
-#else
-				if (!i->m_inuse)
-				{
-					/* mark the first unused demux, we'll use that when we do not find a better match */
-					if (!unused) unused = i;
-				}
-#endif
 				else
 				{
 					/* demux is in use, see if we can share it */
@@ -566,9 +541,7 @@ RESULT eDVBResourceManager::allocateDemux(eDVBRegisteredFrontend *fe, ePtr<eDVBA
 			{
 				--i;
 			}
-#ifdef AZBOX
 			n++;
-#endif
 		}
 	}
 

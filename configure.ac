@@ -142,15 +142,25 @@ if test "$with_po" = "yes"; then
 fi
 AM_CONDITIONAL(UPDATE_PO, test "$with_po" = "yes")
 
-AC_ARG_WITH(azbox,
-	AC_HELP_STRING([--with-azbox], [enable azbox support]),
-	[[withazbox=$withval]],
-	[[withazbox=no]]
+AC_ARG_WITH(azboxhd,
+	AC_HELP_STRING([--with-azboxhd], [enable azboxhd support]),
+	[[withazboxhd=$withval]],
+	[[withazboxhd=no]]
 )
-if test x"$withazbox" != xno ; then
-	AC_DEFINE(AZBOX, 1,[Define when compile enigma2 for azbox])
+if test x"$withazboxhd" != xno ; then
+	AC_DEFINE(AZBOXHD, 1,[Define when compile enigma2 for azboxhd])
 fi
-AM_CONDITIONAL(AZBOX, test x"$withazbox" != xno)
+AM_CONDITIONAL(AZBOXHD, test x"$withazboxhd" != xno)
+
+AC_ARG_WITH(azboxme,
+	AC_HELP_STRING([--with-azboxme], [enable azboxme support]),
+	[[withazboxme=$withval]],
+	[[withazboxme=no]]
+)
+if test x"$withazboxme" != xno ; then
+	AC_DEFINE(AZBOXME, 1,[Define when compile enigma2 for azboxme])
+fi
+AM_CONDITIONAL(AZBOXME, test x"$withazboxme" != xno)
 
 ENIGMA2_CFLAGS="-fno-rtti -fno-exceptions"
 AC_SUBST(ENIGMA2_CFLAGS)

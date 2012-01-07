@@ -11,13 +11,13 @@
 #define FP_IOCTL_SET_RTC         0x101
 #define FP_IOCTL_GET_RTC         0x102
 
-#ifdef AZBOX
+#ifdef AZBOXHD
 #define TIME_UPDATE_INTERVAL (1*30*1000)
 #else
 #define TIME_UPDATE_INTERVAL (30*60*1000)
 #endif
 
-#ifdef AZBOX
+#ifdef AZBOXHD
 static time_t;
 #else
 static time_t prev_time;
@@ -191,7 +191,7 @@ eDVBLocalTimeHandler::~eDVBLocalTimeHandler()
 	if (ready())
 	{
 		eDebug("set RTC to previous valid time");
-#ifdef AZBOX
+#ifdef AZBOXHD
 		eDebug("no RTC to set");
 #else
 		setRTC(::time(0));
@@ -263,7 +263,7 @@ void eDVBLocalTimeHandler::setUseDVBTime(bool b)
 
 void eDVBLocalTimeHandler::updateNonTuned()
 {
-#ifdef AZBOX
+#ifdef AZBOXHD
 	updateTime(time(0), 0, 0);
 #else
 	updateTime(-1, 0, 0);
@@ -285,7 +285,7 @@ void eDVBLocalTimeHandler::updateTime( time_t tp_time, eDVBChannel *chan, int up
 			&& eSystemInfo::getInstance()->hasStandbyWakeupTimer() ) )     TODO !!!!!!! */
 		{
 			eDebug("[eDVBLocalTimerHandler] no transponder tuned... or no TDT/TOT avail .. try to use RTC :)");
-#ifdef AZBOX
+#ifdef AZBOXHD
 			time_t rtc_time = time(0); // take linux time
 			if ( rtc_time == -1 ) // RTC Ready?
 #else
@@ -325,7 +325,7 @@ void eDVBLocalTimeHandler::updateTime( time_t tp_time, eDVBChannel *chan, int up
 				eDebug("[eDVBLocalTimerHandler] shit RTC not ready :(");
 		}
 	}
-#ifdef AZBOX
+#ifdef AZBOXHD
 	else if (chan != NULL)
 #else
 	else
@@ -356,7 +356,7 @@ void eDVBLocalTimeHandler::updateTime( time_t tp_time, eDVBChannel *chan, int up
 			}
 			else if ( it != m_timeOffsetMap.end() ) // correction saved?
 			{
-#ifdef AZBOX
+#ifdef AZBOXHD
 				eDebug("nema gdje snimiti korekciju", it->second);
 				m_timeOffsetMap[chan->getChannelID()] = 0;
 				new_diff = enigma_diff;
@@ -396,7 +396,7 @@ void eDVBLocalTimeHandler::updateTime( time_t tp_time, eDVBChannel *chan, int up
 			{
 				eDebug("[eDVBLocalTimerHandler] no correction found... store calced correction(%d)",-enigma_diff);
 				m_timeOffsetMap[chan->getChannelID()] = -enigma_diff;
-#ifdef AZBOX
+#ifdef AZBOXHD
 				new_diff = enigma_diff;
 #endif
 			}
@@ -428,14 +428,14 @@ void eDVBLocalTimeHandler::updateTime( time_t tp_time, eDVBChannel *chan, int up
 		{
 			// set rtc to calced transponder time when the first tdt is received on this
 			// transponder
-#ifdef AZBOX
+#ifdef AZBOXHD
 			eDebug("no RTC form set");
 #else
 			setRTC(t);
 			eDebug("[eDVBLocalTimerHandler] update RTC");
 #endif
 		}
-#ifndef AZBOX
+#ifndef AZBOXHD
 		else if (getRTC())
 		{
 			if (abs(getRTC() - t) > 60)
