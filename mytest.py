@@ -201,12 +201,13 @@ class Session:
 		
 		# @@azbox start
 		from Components.config import config
-		f = open('/proc/fan', 'w')
-		if config.sifteam.fanenabled.value:
-			f.write("1")
-		else:
-			f.write("0")
-		f.close()
+		if os.path.exists('/proc/fan'):
+			f = open('/proc/fan', 'w')
+			if config.sifteam.fanenabled.value:
+				f.write("1")
+			else:
+				f.write("0")
+			f.close()
 		# @@azbox end
 	def processDelay(self):
 		callback = self.current_dialog.callback
