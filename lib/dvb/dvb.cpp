@@ -89,7 +89,7 @@ eDVBResourceManager::eDVBResourceManager()
 		close(fd);
 
 	if (!strncmp(tmp, "elite\n", rd) || !strncmp(tmp, "premium\n", rd) || !strncmp(tmp, "premium+\n", rd) || !strncmp(tmp, "me\n", rd) || !strncmp(tmp, "minime\n", rd))
-		m_boxtype = AZBOXHD;
+		m_boxtype = AZBOXHD_STD;
 	else if (!strncmp(tmp, "ultra\n", rd))
 		m_boxtype = AZBOXHD_ULTRA;
 	else {
