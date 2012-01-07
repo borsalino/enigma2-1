@@ -26,8 +26,8 @@ class Standby(Screen):
 		try:
 			if config.sifteam.fanenabled.value:
 				open("/proc/fan", "w").write("1")
-			except IOError:
-				pass
+		except IOError:
+			pass
 		# @@azbox end
 		
 		#set input to encoder
