@@ -592,6 +592,10 @@ class HarddiskManager:
 			dev = int(readFile(devpath + "/dev").split(':')[0])
 			if dev in (7, 31, 253): # loop, mtdblock, romblock
 				blacklisted = True
+			if blockdev[0:3] == 'hda':
+				blacklisted = True
+			if blockdev[0:3] == 'ram':
+				blacklisted = True
 			if blockdev[0:2] == 'sr':
 				is_cdrom = True
 			if blockdev[0:2] == 'hd':
