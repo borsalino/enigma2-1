@@ -6,6 +6,7 @@ from Components.config import getConfigListEntry, config, ConfigBoolean, ConfigN
 from Components.Sources.StaticText import StaticText
 
 from VideoHardware import video_hw
+from Tools.HardwareInfo import HardwareInfo
 
 config.misc.videowizardenabled = ConfigBoolean(default = True)
 
@@ -14,6 +15,7 @@ class VideoSetup(Screen, ConfigListScreen):
 	def __init__(self, session, hw):
 		Screen.__init__(self, session)
 		# for the skin: first try VideoSetup, then Setup, this allows individual skinning
+		self.oldService = self.session.nav.getCurrentlyPlayingServiceReference()
 		self.skinName = ["VideoSetup", "Setup" ]
 		self.setup_title = _("A/V Settings")
 		self.hw = hw
@@ -53,17 +55,17 @@ class VideoSetup(Screen, ConfigListScreen):
 		level = config.usage.setup_level.index
 
 		self.list = [
-			getConfigListEntry(_("Video Output"), config.av.videoport)
+			getConfigListEntry(_("Digital Video Output"), config.av.videoport)
 		]
 
 		# if we have modes for this port:
 		if config.av.videoport.value in config.av.videomode:
 			# add mode- and rate-selection:
-			self.list.append(getConfigListEntry(_("Mode"), config.av.videomode[config.av.videoport.value]))
+			self.list.append(getConfigListEntry(_(" Mode"), config.av.videomode[config.av.videoport.value]))
 			if config.av.videomode[config.av.videoport.value].value == 'PC':
 				self.list.append(getConfigListEntry(_("Resolution"), config.av.videorate[config.av.videomode[config.av.videoport.value].value]))
 			else:
-				self.list.append(getConfigListEntry(_("Refresh Rate"), config.av.videorate[config.av.videomode[config.av.videoport.value].value]))
+				self.list.append(getConfigListEntry(_(" Refresh Rate (reflected at analog out: 50Hz = PAL , 60Hz = NTSC)"), config.av.videorate[config.av.videomode[config.av.videoport.value].value]))
 
 		port = config.av.videoport.value
 		if port not in config.av.videomode:
@@ -74,35 +76,37 @@ class VideoSetup(Screen, ConfigListScreen):
 		# some modes (720p, 1080i) are always widescreen. Don't let the user select something here, "auto" is not what he wants.
 		force_wide = self.hw.isWidescreenMode(port, mode)
 
-		if not force_wide:
-			self.list.append(getConfigListEntry(_("Aspect Ratio"), config.av.aspect))
+    # test
+		self.list.append(getConfigListEntry(_(" AFD (Digital Out)"), config.av.hdafd))
+		self.list.append(getConfigListEntry(_(" Aspect Ratio (Digital Out)"), config.av.hdasp))
+		self.list.append(getConfigListEntry(_(" "), config.av.analogtmp1))
+		self.list.append(getConfigListEntry(_("Analog Video Output: Composite & Component"), config.av.analogtmp))
+		self.list.append(getConfigListEntry(_(" Component Out"), config.av.componentout))
+		self.list.append(getConfigListEntry(_(" AFD (Analog Output)"), config.av.sdafd))
+		self.list.append(getConfigListEntry(_(" Aspect Ratio (Analog Output)"), config.av.sdasp))
+		boxime = HardwareInfo().get_device_name()
+		self.list.append(getConfigListEntry(_(" SCART SLB (Slow Blanking)"), config.av.scart_slb))
+		self.list.append(getConfigListEntry(_(" "), config.av.analogtmp1))
 
-		if force_wide or config.av.aspect.value in ("16_9", "16_10"):
-			self.list.extend((
-				getConfigListEntry(_("Display 4:3 content as"), config.av.policy_43),
-				getConfigListEntry(_("Display >16:9 content as"), config.av.policy_169)
-			))
-		elif config.av.aspect.value == "4_3":
-			self.list.append(getConfigListEntry(_("Display 16:9 content as"), config.av.policy_169))
+		self.list.append(getConfigListEntry(_("Scaling Mode"), config.av.scalmode))
+		self.list.append(getConfigListEntry(_("Scaling Mode MediaCenter"), config.av.scalmodemc))
+		#self.list.append(getConfigListEntry(_("Deinterlace"), config.av.deinterlace))
+		self.list.append(getConfigListEntry(_(" "), config.av.analogtmp1))
 
-#		if config.av.videoport.value == "DVI":
-#			self.list.append(getConfigListEntry(_("Allow Unsupported Modes"), config.av.edid_override))
-		if config.av.videoport.value == "Scart":
-			self.list.append(getConfigListEntry(_("Color Format"), config.av.colorformat))
-			if level >= 1:
-				self.list.append(getConfigListEntry(_("WSS on 4:3"), config.av.wss))
-				if SystemInfo["ScartSwitch"]:
-					self.list.append(getConfigListEntry(_("Auto scart switching"), config.av.vcrswitch))
+		#self.list.append(getConfigListEntry(_("SPDIF conf. option"), config.av.spdif_options))
+		self.list.append(getConfigListEntry(_("HDMI passthrough"), config.av.hdmipassthrough))
+		self.list.append(getConfigListEntry(_("AC3"), config.av.ac3))
+		self.list.append(getConfigListEntry(_("AC3 mode"), config.av.ac3mode))
+		self.list.append(getConfigListEntry(_("DTS"), config.av.dts))
+		self.list.append(getConfigListEntry(_("AAC"), config.av.aac))
+		self.list.append(getConfigListEntry(_("MPEG"), config.av.mpeg))
+
+
+
 
 		if level >= 1:
 			if SystemInfo["CanDownmixAC3"]:
 				self.list.append(getConfigListEntry(_("AC3 downmix"), config.av.downmix_ac3))
-			if SystemInfo["CanDownmixDTS"]:
-				self.list.append(getConfigListEntry(_("DTS downmix"), config.av.downmix_dts))
-			self.list.extend((
-				getConfigListEntry(_("General AC3 Delay"), config.av.generalAC3delay),
-				getConfigListEntry(_("General PCM Delay"), config.av.generalPCMdelay)
-			))
 
 		if SystemInfo["CanChangeOsdAlpha"]:
 			self.list.append(getConfigListEntry(_("OSD visibility"), config.av.osd_alpha))
@@ -121,27 +125,63 @@ class VideoSetup(Screen, ConfigListScreen):
 		ConfigListScreen.keyRight(self)
 		self.createSetup()
 
+		
+		
 	def confirm(self, confirmed):
 		if not confirmed:
 			config.av.videoport.value = self.last_good[0]
 			config.av.videomode[self.last_good[0]].value = self.last_good[1]
 			config.av.videorate[self.last_good[1]].value = self.last_good[2]
+			self.session.nav.playService(None)
 			self.hw.setMode(*self.last_good)
+			self.session.nav.playService(self.oldService)
+			config.av.analogmode.value = self.last_good1[0]
+			config.av.componentout.value = self.last_good1[1]
+			config.av.scartasr.value = self.last_good1[2]
+			config.av.deinterlace.value = self.last_good1[3]
+			config.av.hdmipassthrough.value = self.last_good1[4]
+			config.av.sdafd.value = self.last_good2[0]
+			config.av.sdasp.value = self.last_good2[1]
+			config.av.hdafd.value = self.last_good2[2]
+			config.av.hdasp.value = self.last_good2[3]
 		else:
-			self.keySave()
+			self.keySave()			
 
 	def grabLastGoodMode(self):
 		port = config.av.videoport.value
 		mode = config.av.videomode[port].value
 		rate = config.av.videorate[mode].value
+		analogmode = config.av.analogmode.value
+		componentout = config.av.componentout.value
+		scartasr = config.av.scartasr.value
+		deinterlace = config.av.deinterlace.value
+		sdafd = config.av.sdafd.value
+		sdasp = config.av.sdasp.value
+		hdafd = config.av.hdafd.value
+		hdasp = config.av.hdasp.value
+		hdmipassthrough = config.av.hdmipassthrough.value
 		self.last_good = (port, mode, rate)
+		self.last_good1 = (analogmode, componentout, scartasr, deinterlace, hdmipassthrough)
+		self.last_good2 = (sdafd, sdasp, hdafd, hdasp)
 
 	def apply(self):
 		port = config.av.videoport.value
 		mode = config.av.videomode[port].value
 		rate = config.av.videorate[mode].value
-		if (port, mode, rate) != self.last_good:
+		analogmode = config.av.analogmode.value
+		componentout = config.av.componentout.value
+		scartasr = config.av.scartasr.value
+		deinterlace = config.av.deinterlace.value
+		hdmipassthrough = config.av.hdmipassthrough.value
+		sdafd = config.av.sdafd.value
+		sdasp = config.av.sdasp.value
+		hdafd = config.av.hdafd.value
+		hdasp = config.av.hdasp.value
+		#if (port, mode, rate) != self.last_good:
+		if ((port, mode, rate) != self.last_good) or ((analogmode, componentout, scartasr, deinterlace, hdmipassthrough) != self.last_good1) or ((sdafd, sdasp, hdafd, hdasp) != self.last_good2):
+			self.session.nav.playService(None)
 			self.hw.setMode(port, mode, rate)
+			self.session.nav.playService(self.oldService)
 			from Screens.MessageBox import MessageBox
 			self.session.openWithCallback(self.confirm, MessageBox, _("Is this videomode ok?"), MessageBox.TYPE_YESNO, timeout = 20, default = False)
 		else:
@@ -187,7 +227,9 @@ class VideomodeHotplug:
 			mode = modelist[0][0]
 			rate = modelist[0][1]
 			print "setting %s/%s/%s" % (port, mode, rate)
+			self.session.nav.playService(None)
 			self.hw.setMode(port, mode, rate)
+			self.session.nav.playService(self.oldService)
 
 hotplug = None
 
@@ -228,8 +270,8 @@ def VideoWizard(*args, **kwargs):
 def Plugins(**kwargs):
 	list = [
 #		PluginDescriptor(where = [PluginDescriptor.WHERE_SESSIONSTART, PluginDescriptor.WHERE_AUTOSTART], fnc = autostart),
-		PluginDescriptor(name=_("Video Setup"), description=_("Advanced Video Setup"), where = PluginDescriptor.WHERE_MENU, needsRestart = False, fnc=startSetup) 
+		PluginDescriptor(name=_("Video Setup"), description=_("Advanced Video Setup"), where = PluginDescriptor.WHERE_MENU, fnc=startSetup) 
 	]
 	if config.misc.videowizardenabled.value:
-		list.append(PluginDescriptor(name=_("Video Wizard"), where = PluginDescriptor.WHERE_WIZARD, needsRestart = False, fnc=(0, VideoWizard)))
+		list.append(PluginDescriptor(name=_("Video Wizard"), where = PluginDescriptor.WHERE_WIZARD, fnc=(0, VideoWizard)))
 	return list
