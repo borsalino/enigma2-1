@@ -3,31 +3,33 @@ from Components.ActionMap import ActionMap
 from Components.config import config
 from Components.AVSwitch import AVSwitch
 from Components.SystemInfo import SystemInfo
+from Tools.HardwareInfo import HardwareInfo
 from GlobalActions import globalActionMap
 from enigma import eDVBVolumecontrol
 
 inStandby = None
+# @@azbox start
+import os
+# @@azbox end
 
 class Standby(Screen):
 	def Power(self):
 		print "leave standby"
 		
 		# @@azbox start
-		try:
-			open("/proc/sleep", "w").write("1")
-		except IOError:
-			pass
-			
-		try:
-			open("/proc/tangoxfreq/profile", "w").write("0")
-		except IOError:
-			pass
-			
-		try:
+		boxime = HardwareInfo().get_device_name()
+		if boxime != 'premium':
+			try:
+				os.remove("/tmp/.standby")
+			except:
+				pass
+		
+		if boxime == 'premium+' or boxime == 'ultra':
 			if config.sifteam.fanenabled.value:
-				open("/proc/fan", "w").write("1")
-		except IOError:
-			pass
+				try:
+					open("/proc/fan", "w").write("1")
+				except:
+					pass
 		# @@azbox end
 		
 		#set input to encoder
@@ -65,20 +67,17 @@ class Standby(Screen):
 		globalActionMap.setEnabled(False)
 
 		# @@azbox start
-		try:
-			open("/proc/sleep", "w").write("0")
-		except IOError:
-			pass
-			
-		try:
-			open("/proc/tangoxfreq/profile", "w").write("2")
-		except IOError:
-			pass
-			
-		try:
-			open("/proc/fan", "w").write("0")
-		except IOError:
-			pass
+		boxime = HardwareInfo().get_device_name()
+		if boxime != 'premium':
+			try:
+				open("/tmp/.standby", "w").close()
+			except:
+				pass
+		if boxime == 'premium+' or boxime == 'ultra':
+			try:
+				open("/proc/fan", "w").write("0")
+			except:
+				pass
 		# @@azbox end
 		
 		#mute adc
@@ -103,6 +102,14 @@ class Standby(Screen):
 			self.avswitch.setInput("AUX")
 		self.onFirstExecBegin.append(self.__onFirstExecBegin)
 		self.onClose.append(self.__onClose)
+		
+		# @@azbox start
+		if boxime == 'premium':
+			try:
+				 os.system("/usr/bin/showiframe /boot/black.mvi");
+			except:
+				pass
+		# @@azbox end
 
 	def __onClose(self):
 		global inStandby
@@ -200,20 +207,18 @@ class TryQuitMainloop(MessageBox):
 			if self.retval == 1:
 				
 				# @@azbox start
-				try:
-					open("/proc/sleep", "w").write("0")
-				except IOError:
-					pass
-					
-				try:
-					open("/proc/vfdclock", "w").write("1")
-				except IOError:
-					pass
-					
-				try:
-					open("/proc/vfdclock", "w").write(time.strftime("%Y%m%d%H%M"))
-				except IOError:
-					pass
+				boxime = HardwareInfo().get_device_name()
+				if boxime != 'premium':
+					try:
+						os.remove("/tmp/.standby")
+					except:
+						pass
+				if boxime == 'premium+' or boxime == 'ultra':
+					if config.sifteam.fanenabled.value:
+						try:
+							open("/proc/fan", "w").write("1")
+						except:
+							pass
 				# @@azbox end
 				
 				config.misc.DeepStandby.value = True
