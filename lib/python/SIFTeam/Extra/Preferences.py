@@ -53,6 +53,8 @@ def InitPreferences():
 			"downloads": _("Downloads")
 			}, 
 			default = 0)
+
+	config.sifteam.skindevelopermode = ConfigYesNo(False)
 	
 	config.sifteam.cloud = ConfigSubsection()
 	config.sifteam.cloud.username = ConfigText(fixed_size = False)

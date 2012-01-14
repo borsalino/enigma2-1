@@ -28,8 +28,9 @@ class Preferences(Screen, ConfigListScreen):
 			getConfigListEntry(_("Video green switch enable 16:10 letterbox:"), config.sifteam.switch_16_10_letterbox),
 			getConfigListEntry(_("Video green switch enable 16:10 panscan:"), config.sifteam.switch_16_10_panscan),
 			# @@azbox start
-			getConfigListEntry(_("Fan enabled:"), config.sifteam.fanenabled)
+			getConfigListEntry(_("Fan enabled:"), config.sifteam.fanenabled),
 			# @@azbox end
+			getConfigListEntry(_("Skin developer mode:"), config.sifteam.skindevelopermode)
 		]
 
 		
