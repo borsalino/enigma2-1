@@ -533,6 +533,9 @@ def loadSingleSkinData(desktop, skin, path_prefix):
 		x = eWindowStyleManager.getInstance()
 		x.setStyle(id, style)
 
+	for skininclude in skin.findall("include"):
+		loadSkin(skininclude.attrib.get("filename"))
+
 dom_screens = {}
 
 def loadSkin(name, scope = SCOPE_SKIN):
@@ -551,10 +554,9 @@ def loadSkin(name, scope = SCOPE_SKIN):
 						elem.clear()
 						continue
 					if name in dom_screens:
-						print "loadSkin: Screen already defined elsewhere:", name
-						elem.clear()
-					else:
-						dom_screens[name] = (elem, path)
+						# Kill old versions, save memory
+						dom_screens[name][0].clear()
+					dom_screens[name] = (elem, path)
 				else:
 					elem.clear()
 			else:
