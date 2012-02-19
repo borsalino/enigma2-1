@@ -39,7 +39,7 @@ class Disks():
 		for part in partitions:
 			res = re.sub("\s+", " ", part).strip().split(" ")
 			if res and len(res) == 4:
-				if len(res[3]) == 3 and res[3][:2] == "sd":
+				if len(res[3]) == 3 and (res[3][:2] == "sd" or res[3][:2] == "hd") and res[3] != "hda":
 					self.disks.append([ res[3],
 										int(res[2]) * 1024,
 										self.isRemovable(res[3]),
@@ -52,7 +52,7 @@ class Disks():
 		for part in partitions:
 			res = re.sub("\s+", " ", part).strip().split(" ")
 			if res and len(res) == 4:
-				if len(res[3]) > 3 and res[3][:2] == "sd":
+				if len(res[3]) == 3 and (res[3][:2] == "sd" or res[3][:2] == "hd") and res[3] != "hda":
 					for i in self.disks:
 						if i[0] == res[3][:3]:
 							i[5].append([ res[3], int(res[2]) * 1024, self.isLinux(res[3]) ])
@@ -75,10 +75,16 @@ class Disks():
 		return res
 		
 	def getModel(self, device):
-		return open("/sys/block/%s/device/model" % device, "r").read().strip()
+		if device[:2] == "hd":
+			return open("/proc/ide/ide0/%s/model" % device, "r").read().strip()
+		else:
+			return open("/sys/block/%s/device/model" % device, "r").read().strip()
 		
 	def getVendor(self, device):
-		return open("/sys/block/%s/device/vendor" % device, "r").read().strip()
+		if device[:2] == "hd":
+			return ""
+		else:
+			return open("/sys/block/%s/device/vendor" % device, "r").read().strip()
 		
 	def isMounted(self, device):
 		mounts = open("/proc/mounts")
