@@ -62,7 +62,11 @@ void eLCD::renderText(ePoint start, const char *text)
 	{
 		std::string message = text;
 		message = replace_all(message, "\n", " ");
-		::write(lcdfd, message.c_str(), message.size());
+		// only 50 chars... azbox hd fp crash really easy with long strings
+		int size = message.size();
+		if (size > 50)
+			size = 50;
+		::write(lcdfd, message.c_str(), 50);
 	}
 }
 #endif
