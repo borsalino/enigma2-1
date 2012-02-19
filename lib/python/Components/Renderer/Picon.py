@@ -114,7 +114,8 @@ class Picon(Renderer):
 				pngname = self.defaultpngname
 			if self.pngname != pngname:
 				if pngname:
-					self.instance.setScale(1)
+					# make the azbox crash.. for now we disable it
+					#self.instance.setScale(1)
 					self.instance.setPixmapFromFile(pngname)
 					self.instance.show()
 				else:
