@@ -34,7 +34,11 @@ int sigma_accel_init(void)
 
 void sigma_accel_close(void)
 {
-	close(fb_fd);
+	if (fb_fd >= 0)
+	{
+		close(fb_fd);
+		fb_fd = -1;
+	}
 }
 
 int sigma_accel_blit(
