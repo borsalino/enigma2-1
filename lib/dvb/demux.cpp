@@ -125,13 +125,13 @@ int eDVBDemux::openDVR(int flags)
 #if HAVE_DVB_API_VERSION < 3
 	return ::open("/dev/pvr", flags);
 #else
-#ifdef HAVE_OLDPVR
+//#ifdef HAVE_OLDPVR
 	return ::open("/dev/misc/pvr", flags);
-#else
-	char filename[32];
-	snprintf(filename, sizeof(filename), "/dev/dvb/adapter%d/dvr%d", adapter, demux);
-	return ::open(filename, flags);
-#endif
+//#else
+//	char filename[32];
+//	snprintf(filename, sizeof(filename), "/dev/dvb/adapter%d/dvr%d", adapter, demux);
+//	return ::open(filename, flags);
+//#endif
 #endif
 }
 

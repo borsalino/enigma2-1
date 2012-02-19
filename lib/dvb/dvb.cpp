@@ -450,15 +450,45 @@ RESULT eDVBResourceManager::allocateDemux(eDVBRegisteredFrontend *fe, ePtr<eDVBA
 	eDebug("allocate demux");
 	eSmartPtrList<eDVBRegisteredDemux>::iterator i(m_demux.begin());
 
+	int n=0;
+
 	if (i == m_demux.end())
 		return -1;
 
 	ePtr<eDVBRegisteredDemux> unused;
 
-	if (m_boxtype == DM7025) // ATI
+	if (m_boxtype == DM800) // dm800
+	{
+		cap |= capHoldDecodeReference; // this is checked in eDVBChannel::getDemux
+		for (; i != m_demux.end(); ++i, ++n)
+		{
+			if (!i->m_inuse)
+			{
+				if (!unused)
+					unused = i;
+			}
+			else
+			{
+				if (fe)
+				{
+					if (i->m_adapter == fe->m_adapter && 
+					    i->m_demux->getSource() == fe->m_frontend->getDVBID())
+					{
+						demux = new eDVBAllocatedDemux(i);
+						return 0;
+					}
+				}
+				else if (i->m_demux->getSource() == -1) // PVR
+				{
+					demux = new eDVBAllocatedDemux(i);
+					return 0;
+				}
+			}
+		}
+	}
+	else if (m_boxtype == DM7025) // ATI
 	{
 		/* FIXME: hardware demux policy */
-		int n=0;
 		if (!(cap & iDVBChannel::capDecode))
 		{
 			if (m_demux.size() > 2)  /* assumed to be true, otherwise we have lost anyway */
@@ -485,58 +515,40 @@ RESULT eDVBResourceManager::allocateDemux(eDVBRegisteredFrontend *fe, ePtr<eDVBA
 	}
 	else
 	{
-		iDVBAdapter *adapter = fe ? fe->m_adapter : m_adapter.begin(); /* look for a demux on the same adapter as the frontend, or the first adapter for dvr playback */
-		int source = fe ? fe->m_frontend->getDVBID() : -1;
 		cap |= capHoldDecodeReference; // this is checked in eDVBChannel::getDemux
-		if (!fe)
+		for (; i != m_demux.end(); ++i, ++n)
 		{
-			/*
-			 * For pvr playback, start with the last demux.
-			 * On some hardware, we have less ca devices than demuxes,
-			 * so we should try to leave the first demuxes for live tv,
-			 * and start with the last for pvr playback
-			 */
-			i = m_demux.end();
-			--i;
-		}
-		int n = 0;
-		while (i != m_demux.end())
-		{
-			if (i->m_adapter == adapter)
-			{
-				if (!i->m_inuse && n == 0 && source == 0 && m_boxtype != AZBOXHD_ULTRA)  //Sigma use demux0 for tuner (0)
-				{
-					if (!unused) {
-						unused = i;
-						break;
-					}
-				}
-				else if(!i->m_inuse && n == 1 && (source == 1 || (source == 0 && m_boxtype == AZBOXHD_ULTRA ))) //Sigma use demux1 for tuner (1)
-				{
-					if (!unused) {
-						unused = i;
-						break;
-					}
-				}
-				else
-				{
-					/* demux is in use, see if we can share it */
-					if (source >= 0 && i->m_demux->getSource() == source)
-					{
-						demux = new eDVBAllocatedDemux(i);
-						return 0;
-					}
-				}
-			}
 			if (fe)
 			{
-				++i;
+				if (!i->m_inuse && n == 0 && fe->m_frontend->getDVBID() == 0 && m_boxtype != AZBOXHD_ULTRA)  //Sigma use demux0 for tuner (0)
+				{
+					if (!unused) {
+						unused = i;
+						break;
+					}
+				}
+				else if(!i->m_inuse && n == 1 && (fe->m_frontend->getDVBID() == 1 || (fe->m_frontend->getDVBID() == 0 && m_boxtype == AZBOXHD_ULTRA ))) //Sigma use demux1 for tuner (1)
+				{
+					if (!unused) {
+						unused = i;
+						break;
+					}
+				}
+				else if (i->m_adapter == fe->m_adapter &&
+				    i->m_demux->getSource() == fe->m_frontend->getDVBID())
+				{
+					demux = new eDVBAllocatedDemux(i);
+					return 0;
+				}
 			}
-			else
+			else if (n == (m_demux.size() - 1)) // always use last demux for PVR
 			{
-				--i;
+				if (i->m_inuse) {
+					demux = new eDVBAllocatedDemux(i);
+					return 0;
+				}
+				unused = i;
 			}
-			n++;
 		}
 	}
 
@@ -1827,14 +1839,14 @@ RESULT eDVBChannel::playSource(ePtr<iTsSource> &source, const char *streaminfo_f
 			return -ENODEV;
 		}
 #else
-#ifdef HAVE_OLDPVR
+//#ifdef HAVE_OLDPVR
 		m_pvr_fd_dst = open("/dev/misc/pvr", O_WRONLY);
 		if (m_pvr_fd_dst < 0)
 		{
 			eDebug("can't open /dev/misc/pvr - %m"); // or wait for the driver to be improved.
 			return -ENODEV;
 		}
-#else
+/*#else
 		ePtr<eDVBAllocatedDemux> &demux = m_demux ? m_demux : m_decoder_demux;
 		if (demux)
 		{
@@ -1850,7 +1862,7 @@ RESULT eDVBChannel::playSource(ePtr<iTsSource> &source, const char *streaminfo_f
 			eDebug("no demux allocated yet.. so its not possible to open the dvr device!!");
 			return -ENODEV;
 		}
-#endif
+#endif*/
 #endif
 	}
 
