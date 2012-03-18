@@ -934,7 +934,6 @@ void eEPGCache::flushEPG(const uniqueEPGKey & s)
 		for (channelMapIterator it(m_knownChannels.begin()); it != m_knownChannels.end(); ++it)
 			it->second->startEPG();
 	}
-	eDebug("[EPGC] %i bytes for cache used", eventData::CacheSize);
 }
 
 void eEPGCache::cleanLoop()
@@ -997,7 +996,6 @@ void eEPGCache::cleanLoop()
 			}
 #endif
 		}
-		eDebug("[EPGC] %i bytes for cache used", eventData::CacheSize);
 	}
 	cleanTimer->start(CLEAN_INTERVAL,true);
 }
@@ -3605,7 +3603,7 @@ void eEPGCache::channel_data::timeMHW2DVB( u_char day, u_char hours, u_char minu
 	char *old_tz = getenv( "TZ" );
 	if (old_tz)
 		strcpy(tz_saved, old_tz);
-	putenv("TZ=CET-1CEST,M3.5.0/2,M10.5.0/3");
+	putenv((char*)"TZ=CET-1CEST,M3.5.0/2,M10.5.0/3");
 	tzset();
 
 	tm localnow;
