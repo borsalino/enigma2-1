@@ -45,7 +45,17 @@ class VideoWizard(WizardLanguage, Rc):
 				</screen>' 				
 				
 	skin = skin1 + zascart + skin2 + zaslike + skin3
-	
+
+class VideoWizardSummary(WizardSummary):
+	def __init__(self, session, parent):
+		WizardSummary.__init__(self, session, parent)
+
+	def setLCDPicCallback(self):
+		self.parent.setLCDTextCallback(self.setText)
+		
+	def setLCDPic(self, file):
+		self["pic"].instance.setPixmapFromFile(file)
+
 	def __init__(self, session):
 		# FIXME anyone knows how to use relative paths from the plugin's directory?
 		self.xmlfile = resolveFilename(SCOPE_PLUGINS, "SystemPlugins/Videomode/videowizard.xml")
