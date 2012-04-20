@@ -2195,7 +2195,7 @@ void eDVBFrontend::setFrontend(bool recvEvents)
 			{
 			default:
 			case eDVBFrontendParametersATSC::System_ATSC: p[cmdseq.num].u.data = SYS_DVBT; break;
-			case eDVBFrontendParametersATSC::System_DVB_C_ANNEX_B: p[cmdseq.num].u.data = SYS_DVBT2; break;
+			//case eDVBFrontendParametersATSC::System_DVB_C_ANNEX_B: p[cmdseq.num].u.data = SYS_DVBT2; break;
 			}
 			cmdseq.num++;
 
