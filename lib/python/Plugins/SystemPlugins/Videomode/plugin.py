@@ -29,11 +29,10 @@ class VideoSetup(Screen, ConfigListScreen):
 		ConfigListScreen.__init__(self, self.list, session = session, on_change = self.changedEntry)
 
 		from Components.ActionMap import ActionMap
-		self["actions"] = ActionMap(["SetupActions", "MenuActions"], 
+		self["actions"] = ActionMap(["SetupActions"], 
 			{
 				"cancel": self.keyCancel,
 				"save": self.apply,
-				"menu": self.closeRecursive,
 			}, -2)
 
 		self["key_red"] = StaticText(_("Cancel"))
@@ -66,7 +65,7 @@ class VideoSetup(Screen, ConfigListScreen):
 			if config.av.videomode[config.av.videoport.value].value == 'PC':
 				self.list.append(getConfigListEntry(_("Resolution"), config.av.videorate[config.av.videomode[config.av.videoport.value].value]))
 			else:
-				self.list.append(getConfigListEntry(_(" Refresh Rate (reflected at analog out: 50Hz = PAL , 60Hz = NTSC)"), config.av.videorate[config.av.videomode[config.av.videoport.value].value]))
+				self.list.append(getConfigListEntry(_(" Refresh Rate (Analog out: 50Hz = PAL , 60Hz = NTSC)"), config.av.videorate[config.av.videomode[config.av.videoport.value].value]))
 
 		port = config.av.videoport.value
 		if port not in config.av.videomode:
@@ -87,6 +86,10 @@ class VideoSetup(Screen, ConfigListScreen):
 		self.list.append(getConfigListEntry(_(" Aspect Ratio (Analog Output)"), config.av.sdasp))
 		boxime = HardwareInfo().get_device_name()
 		self.list.append(getConfigListEntry(_(" SCART SLB (Slow Blanking)"), config.av.scart_slb))
+		self.list.append(getConfigListEntry(_(" "), config.av.analogtmp1))
+
+		self.list.append(getConfigListEntry(_(" input video scan mode"), config.av.input_video_scan_mod))
+		self.list.append(getConfigListEntry(_(" interlaced progressive algo."), config.av.interlaced_prog_algo))
 		self.list.append(getConfigListEntry(_(" "), config.av.analogtmp1))
 
 		self.list.append(getConfigListEntry(_("Scaling Mode"), config.av.scalmode))
