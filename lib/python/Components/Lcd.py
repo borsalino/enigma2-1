@@ -40,7 +40,10 @@ def standbyCounterChanged(configElement):
 	config.lcd.standby.apply()
 
 def InitLcd():
-	detected = eDBoxLCD.getInstance().detected()
+	if config.misc.boxtype.value == 'gb800se' or config.misc.boxtype.value == 'gb800solo':
+		detected = False
+	else:
+		detected = eDBoxLCD.getInstance().detected()
 	SystemInfo["Display"] = detected
 	config.lcd = ConfigSubsection();
 	if detected:
@@ -70,15 +73,12 @@ def InitLcd():
 		config.lcd.standby = ConfigSlider(default=standby_default, limits=(0, 10))
 		config.lcd.standby.addNotifier(setLCDbright);
 		config.lcd.standby.apply = lambda : setLCDbright(config.lcd.standby)
-
 		config.lcd.bright = ConfigSlider(default=5, limits=(0, 10))
 		config.lcd.bright.addNotifier(setLCDbright);
 		config.lcd.bright.apply = lambda : setLCDbright(config.lcd.bright)
 		config.lcd.bright.callNotifiersOnSaveAndCancel = True
-
 		config.lcd.invert = ConfigYesNo(default=False)
 		config.lcd.invert.addNotifier(setLCDinverted);
-
 		config.lcd.flip = ConfigYesNo(default=False)
 		config.lcd.flip.addNotifier(setLCDflipped);
 	else:

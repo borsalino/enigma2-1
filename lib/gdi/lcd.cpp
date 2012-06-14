@@ -4,13 +4,6 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
-#if defined(HAVE_DBOX_FP_H) && defined(HAVE_DBOX_LCD_KS0713_H)
-#include <dbox/fp.h>
-#include <dbox/lcd-ks0713.h>
-#else
-#define NO_LCD 1
-#endif
-
 #include <lib/gdi/esize.h>
 #include <lib/base/init.h>
 #include <lib/base/init_num.h>

@@ -6,10 +6,13 @@ from enigma import Misc_Options, eEnv;
 from Components.NimManager import nimmanager
 from Components.Harddisk import harddiskmanager
 from SystemInfo import SystemInfo
+from SIFTeam.Extra.HWType import getHWType
 import os
 import enigma
 
 def InitUsageConfig():
+	config.misc.boxtype = ConfigText(default = getHWType())
+
 	config.usage = ConfigSubsection();
 	config.usage.showdish = ConfigYesNo(default = True)
 	config.usage.multibouquet = ConfigYesNo(default = True)
